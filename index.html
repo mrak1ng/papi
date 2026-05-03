@@ -6,251 +6,12 @@
     <title>CargoPay Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
-    <style>
-        /* БАЗОВЫЕ СТИЛИ */
-        :root {
-            --bs-body-bg: #212529;
-            --bs-body-color: #dee2e6;
-            --sidebar-width: 280px;
-            --primary-color: #FF4500;
-            --hover-bg: rgba(255, 255, 255, 0.075);
-            --sidebar-bg: #212529;
-            --card-bg: #2c3034;
-            --border-color: #343a40;
-            --input-bg: #212529;
-            --input-color: #dee2e6;
-            --input-border: #495057;
-            --label-color: #ced4da;
-        }
-
-        /* Светлая тема */
-        :root.light {
-            --bs-body-bg: #f8f9fa;
-            --bs-body-color: #212529;
-            --primary-color: #0d6efd;
-            --hover-bg: rgba(13, 110, 253, 0.1);
-            --sidebar-bg: #ffffff;
-            --card-bg: #ffffff;
-            --border-color: #dee2e6;
-            --input-bg: #ffffff;
-            --input-color: #212529;
-            --input-border: #ced4da;
-            --label-color: #495057;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-
-        body {
-            background-color: var(--bs-body-bg);
-            color: var(--bs-body-color);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            position: fixed;
-            top: 0; left: 0; bottom: 0;
-            z-index: 100;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--bs-body-color);
-            margin-bottom: 2rem;
-            padding-left: 10px;
-            transition: color 0.3s ease;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: var(--bs-body-color);
-            opacity: 0.85;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            margin-bottom: 4px;
-            font-size: 1rem;
-        }
-
-        .nav-link:hover {
-            background-color: var(--hover-bg);
-            opacity: 1;
-            color: var(--bs-body-color);
-        }
-
-        .nav-link.active {
-            background-color: var(--primary-color);
-            color: #fff !important;
-            opacity: 1;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-        }
-
-        .nav-link i { font-size: 1.2rem; }
-
-        .logout-btn {
-            margin-top: auto;
-            color: #dc3545 !important;
-        }
-
-        .logout-btn:hover {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #ff6b7a !important;
-        }
-
-        /* MAIN CONTENT */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 2rem;
-            width: calc(100% - var(--sidebar-width));
-            transition: margin-left 0.3s ease;
-        }
-
-        .page-header {
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
-        }
-
-        .page-header h1 { font-size: 2rem; font-weight: 500; color: var(--bs-body-color); transition: color 0.3s ease; }
-
-        /* FORMS */
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--label-color);
-            transition: color 0.3s ease;
-        }
-
-        .form-control {
-            display: block;
-            width: 100%;
-            padding: 0.375rem 0.75rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            color: var(--input-color);
-            background-color: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 0.375rem;
-            transition: all 0.15s ease-in-out;
-        }
-
-        .form-control:focus {
-            color: var(--input-color);
-            background-color: var(--input-bg);
-            border-color: #86b7fe;
-            outline: 0;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-
-        .btn-primary {
-            display: inline-block;
-            font-weight: 400;
-            line-height: 1.5;
-            color: #fff;
-            text-align: center;
-            text-decoration: none;
-            vertical-align: middle;
-            cursor: pointer;
-            user-select: none;
-            background-color: var(--primary-color);
-            border: 1px solid transparent;
-            padding: 0.375rem 0.75rem;
-            font-size: 1rem;
-            border-radius: 0.375rem;
-            transition: all 0.15s ease-in-out;
-            width: 100%;
-            margin-top: 1.5rem;
-        }
-
-        .btn-primary:hover {
-            filter: brightness(0.9);
-        }
-
-        .section { display: none; animation: fadeIn 0.3s ease; }
-        .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ===== КНОПКА СМЕНЫ ТЕМЫ ===== */
-        #themeToggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 45px;
-            height: 45px;
-            border: 2px solid var(--primary-color);
-            background: var(--card-bg);
-            color: var(--primary-color);
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 9999;
-        }
-
-        #themeToggle:hover {
-            background: var(--primary-color);
-            color: #fff;
-            transform: scale(1.1);
-        }
-
-        /* АДАПТИВНОСТЬ */
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; padding: 10px; border-right: none; border-bottom: 1px solid var(--border-color); }
-            .brand { width: 100%; margin-bottom: 10px; justify-content: center; }
-            .nav-link { width: calc(50% - 5px); justify-content: center; font-size: 0.9rem; }
-            .logout-btn { width: 100%; margin-top: 10px; justify-content: center; }
-            .main-content { margin-left: 0; width: 100%; padding: 1rem; }
-            .form-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="dashboard-body">
 
-    <!-- КНОПКА СМЕНЫ ТЕМЫ -->
-    <button id="themeToggle" title="Сменить тему">🌙</button>
+    <button id="themeToggle">🌙</button>
 
-    <!-- Боковая панель -->
     <nav class="sidebar">
         <div class="brand">
             <i class="bi bi-truck-front-fill"></i> CargoPay
@@ -261,27 +22,24 @@
         <a href="#" class="nav-link" onclick="showSection('trips', this)">
             <i class="bi bi-map"></i> Рейсы
         </a>
+        <!-- NEW: Вернул кнопку расчета -->
         <a href="#" class="nav-link" onclick="showSection('calc', this)">
             <i class="bi bi-calculator"></i> Расчет
         </a>
-        <a href="../register.html" class="nav-link logout-btn">
+        <a href="{{ url_for('login') }}" class="nav-link nav-link-logout">
             <i class="bi bi-box-arrow-right"></i> Выйти
         </a>
-
     </nav>
 
-    <!-- Основной контент -->
     <main class="main-content">
-
+        
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="flashes" style="margin-bottom: 20px; list-style: none;">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}" role="alert">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
 
@@ -293,19 +51,47 @@
             <div class="card">
                 <form action="/add_driver" method="POST">
                     <div class="form-grid">
-                        <div><label class="form-label">ФИО</label><input type="text" name="full_name" class="form-control" placeholder="Иванов И.И."></div>
-                        <div><label class="form-label">ID водителя</label><input type="text" name="driver_id_field" class="form-control" placeholder="WD-001"></div>
-                        <div><label class="form-label">Номер прав</label><input type="text" name="license_number" class="form-control" placeholder="77 01 123456"></div>
-                        <div><label class="form-label">Категория</label><input type="text" name="category" class="form-control" placeholder="B, C, D"></div>
-                        <div><label class="form-label">Телефон</label><input type="tel" name="phone_number" class="form-control" placeholder="+7 (999) ..."></div>
-                        <div><label class="form-label">Стаж (лет)</label><input type="number" name="experience" class="form-control" placeholder="10"></div>
+                        <div><label>ФИО</label><input type="text" name="full_name" class="form-control"></div>
+                        <div><label>Номер прав</label><input type="text" name="license_number" class="form-control"></div>
+                        <div><label>Телефон</label><input type="tel" name="phone_number" class="form-control"></div>
+                        <div><label>Категория</label><input type="text" name="category" class="form-control"></div>
+                        <div><label>Стаж</label><input type="number" name="experience" class="form-control"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Сохранить водителя</button>
+                    <button type="submit" class="btn btn-primary mt-3 w-100 form-submit-btn">Сохранить</button>
                 </form>
+            </div>
+
+            <div class="card">
+                <h3>Список водителей</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Права</th>
+                            <th>Телефон</th>
+                            <th>Кат.</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for driver in drivers %}
+                        <tr>
+                            <td>{{ driver[1] }}</td>
+                            <td>{{ driver[2] }}</td>
+                            <td>{{ driver[3] }}</td>
+                            <td>{{ driver[4] }}</td>
+                            <td>
+                                <a href="/delete_driver/{{ driver[0] }}" class="btn-delete" onclick="return confirm('Удалить?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </section>
 
-        <!-- Секция: Рейсы -->
         <section id="trips" class="section">
             <div class="page-header">
                 <h1>Управление рейсами</h1>
@@ -313,45 +99,69 @@
             <div class="card">
                 <form action="/add_trip" method="POST">
                     <div class="form-grid">
-                        <div><label class="form-label">Номер рейса</label><input type="text" name="trip_number" class="form-control" placeholder="RT-1001"></div>
-                        <div><label class="form-label">Водитель</label><input type="text" name="driver_name" class="form-control" placeholder="ФИО"></div>
-                        <div><label class="form-label">Маршрут</label><input type="text" name="route" class="form-control" placeholder="Москва → Казань"></div>
-                        <div><label class="form-label">Груз</label><input type="text" name="cargo" class="form-control" placeholder="Описание"></div>
-                        <div><label class="form-label">Дата отправки</label><input type="date" name="departure_date" class="form-control"></div>
-                        <div><label class="form-label">Дата прибытия</label><input type="date" name="arrival_date" class="form-control"></div>
-                        <div><label class="form-label">Расстояние (км)</label><input type="number" name="distance" class="form-control" placeholder="820"></div>
-                        <div><label class="form-label">Статус</label><input type="text" name="status" class="form-control" placeholder="В пути"></div>
+                        <div><label>Номер рейса</label><input type="text" name="trip_number" class="form-control"></div>
+                        <div><label>Водитель</label><input type="text" name="driver_name" class="form-control"></div>
+                        <div><label>Маршрут</label><input type="text" name="route" class="form-control"></div>
+                        <div><label>Статус</label><input type="text" name="status" class="form-control"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Сохранить рейс</button>
+                    <button type="submit" class="btn btn-primary mt-3 w-100 form-submit-btn">Сохранить</button>
                 </form>
+            </div>
+
+            <div class="card">
+                <h3>Список рейсов</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Водитель</th>
+                            <th>Маршрут</th>
+                            <th>Статус</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in trips %}
+                        <tr>
+                            <td>{{ trip[1] }}</td>
+                            <td>{{ trip[2] }}</td>
+                            <td>{{ trip[3] }}</td>
+                            <td>{{ trip[8] }}</td>
+                            <td>
+                                <a href="/delete_trip/{{ trip[0] }}" class="btn-delete" onclick="return confirm('Удалить?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </section>
 
-        <!-- Секция: Расчет -->
         <section id="calc" class="section">
             <div class="page-header">
                 <h1>Финансовый расчет</h1>
             </div>
             <div class="card">
                 <form>
-                    <div class="form-grid">
-                        <div><label class="form-label">Номер рейса</label><input type="text" class="form-control" placeholder="RT-1001"></div>
-                        <div><label class="form-label">Водитель</label><input type="text" class="form-control" placeholder="ФИО"></div>
-                        <div><label class="form-label">Ставка за км (₽)</label><input type="number" class="form-control" placeholder="15"></div>
-                        <div><label class="form-label">Расстояние (км)</label><input type="number" class="form-control" placeholder="820"></div>
-                        <div><label class="form-label">Топливо (₽)</label><input type="number" class="form-control" placeholder="12000"></div>
-                        <div><label class="form-label">Доп. расходы (₽)</label><input type="number" class="form-control" placeholder="3000"></div>
-                        <div><label class="form-label">Премия (₽)</label><input type="number" class="form-control" placeholder="5000"></div>
-                        <div><label class="form-label">Итого к оплате (₽)</label><input type="text" class="form-control" readonly placeholder="Авто-расчет"></div>
+                    <div class="form-grid-wide">
+                        <div><label>Номер рейса</label><input type="text" class="form-control" placeholder="RT-1001"></div>
+                        <div><label>Водитель</label><input type="text" class="form-control" placeholder="ФИО"></div>
+                        <div><label>Ставка за км (₽)</label><input type="number" class="form-control" placeholder="15"></div>
+                        <div><label>Расстояние (км)</label><input type="number" class="form-control" placeholder="820"></div>
+                        <div><label>Топливо (₽)</label><input type="number" class="form-control" placeholder="12000"></div>
+                        <div><label>Доп. расходы (₽)</label><input type="number" class="form-control" placeholder="3000"></div>
+                        <div><label>Премия (₽)</label><input type="number" class="form-control" placeholder="5000"></div>
+                        <div><label>Итого к оплате (₽)</label><input type="text" class="form-control" readonly placeholder="Авто-расчет"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Рассчитать стоимость</button>
+                    <button type="submit" class="btn btn-primary mt-4 w-100 form-submit-btn">Рассчитать стоимость</button>
                 </form>
             </div>
         </section>
     </main>
 
     <script>
-        // Переключение секций
         function showSection(id, element) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
@@ -359,34 +169,10 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // ===== ЛОГИКА СМЕНЫ ТЕМЫ =====
         const themeToggle = document.getElementById('themeToggle');
-        const htmlEl = document.documentElement;
-
-        // Проверяем сохранённую тему
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light') {
-            document.documentElement.classList.add('light');
-            document.body.classList.remove('dark');
-            themeToggle.textContent = '☀️';
-        } else {
-            document.documentElement.classList.remove('light');
-            document.body.classList.add('dark');
-            themeToggle.textContent = '🌙';
-        }
-
         themeToggle.addEventListener('click', () => {
             const isLight = document.documentElement.classList.toggle('light');
-
-            if (isLight) {
-                document.body.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                themeToggle.textContent = '☀️';
-            } else {
-                document.body.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                themeToggle.textContent = '🌙';
-            }
+            themeToggle.textContent = isLight ? '☀️' : '🌙';
         });
     </script>
 </body>
