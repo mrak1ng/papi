@@ -11,55 +11,34 @@ DB_USERS = os.path.join(os.path.dirname(__file__), 'users.db')
 DB_DRIVERS = os.path.join(os.path.dirname(__file__), 'drivers.db')
 DB_TRIPS = os.path.join(os.path.dirname(__file__), 'trips.db')
 
-def init_sqlite_db():
-    # Инициализация базы пользователей
+def init_db():
     conn = sqlite3.connect(DB_USERS)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    conn.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, email TEXT NOT NULL, password TEXT NOT NULL)''')
+    conn.commit(); conn.close()
 
-    # Инициализация базы водителей
+    conn = sqlite3.connect(DB_DRIVERS)
+    conn.execute('''CREATE TABLE IF NOT EXISTS drivers (id INTEGER PRIMARY KEY AUTOINCREMENT, full_name TEXT NOT NULL, license_number TEXT NOT NULL UNIQUE, phone_number TEXT NOT NULL, category TEXT, experience INTEGER)''')
+    conn.commit(); conn.close()
+
+    conn = sqlite3.connect(DB_TRIPS)
+    conn.execute('''CREATE TABLE IF NOT EXISTS trips (id INTEGER PRIMARY KEY AUTOINCREMENT, trip_number TEXT NOT NULL UNIQUE, driver_name TEXT NOT NULL, route TEXT NOT NULL, cargo TEXT, departure_date TEXT, arrival_date TEXT, distance INTEGER, status TEXT)''')
+    conn.commit(); conn.close()
+
+def get_all_drivers():
     conn = sqlite3.connect(DB_DRIVERS)
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS drivers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            full_name TEXT NOT NULL,
-            license_number TEXT NOT NULL UNIQUE,
-            phone_number TEXT NOT NULL,
-            category TEXT,
-            experience INTEGER
-        )
-    ''')
-    conn.commit()
+    cursor.execute('SELECT * FROM drivers ORDER BY id DESC') # Сортируем по новизне
+    drivers = cursor.fetchall()
     conn.close()
+    return drivers
 
-    # Инициализация базы рейсов
+def get_all_trips():
     conn = sqlite3.connect(DB_TRIPS)
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS trips (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            trip_number TEXT NOT NULL UNIQUE,
-            driver_name TEXT NOT NULL,
-            route TEXT NOT NULL,
-            cargo TEXT,
-            departure_date TEXT,
-            arrival_date TEXT,
-            distance INTEGER,
-            status TEXT
-        )
-    ''')
-    conn.commit()
+    cursor.execute('SELECT * FROM trips ORDER BY id DESC')
+    trips = cursor.fetchall()
     conn.close()
+    return trips
 
 def save_user(username, email, password):
     try:
@@ -212,7 +191,7 @@ def add_to_mysql(db_config, table_name, data_tuple):
         conn.close()
 
 # Запуск инициализации при старте
-init_sqlite_db()
+init_db()
 init_mysql_dbs()
 
 @app.route('/')
@@ -260,7 +239,9 @@ def login():
 
 @app.route('/index')
 def index():
-    return render_template('index.html')
+    drivers = get_all_drivers()
+    trips = get_all_trips()
+    return render_template('index.html', drivers=drivers, trips=trips)
 
 @app.route('/add_driver', methods=['POST'])
 def add_driver():
@@ -317,6 +298,28 @@ def update_account():
 
     flash('Настройки аккаунта сохранены! (Логика обновления в разработке)', 'success')
     return redirect(url_for('index'))
+
+@app.route('/delete_driver/<int:driver_id>')
+def delete_driver(driver_id):
+    conn = sqlite3.connect(DB_DRIVERS)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM drivers WHERE id = ?', (driver_id,))
+    conn.commit()
+    conn.close()
+    flash('Водитель удален.', 'success')
+    return redirect(url_for('index', tab='drivers'))
+
+@app.route('/delete_trip/<int:trip_id>')
+def delete_trip(trip_id):
+    conn = sqlite3.connect(DB_TRIPS)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM trips WHERE id = ?', (trip_id,))
+    conn.commit()
+    conn.close()
+    flash('Рейс удален.', 'success')
+    return redirect(url_for('index', tab='trips'))
+
+init_db()
 
 if __name__ == '__main__':
     app.run(debug=True)
