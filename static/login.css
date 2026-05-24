@@ -1,0 +1,89 @@
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f6f8;
+            color: #212529;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .wrapper {
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transition: background 0.4s, box-shadow 0.4s;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: #f9f9f9;
+            color: #333;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+        .input-box input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            background: #fff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #357abd; }
+
+        .flashes { list-style: none; padding: 0; margin-bottom: 15px; }
+        .flashes .success { color: #28a745; }
+        .flashes .error { color: #dc3545; }
+
+
+        body.dark {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        body.dark .wrapper {
+            background: #1e1e1e;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        }
+        body.dark .input-box input {
+            background: #2d2d2d;
+            border-color: #444;
+            color: #fff;
+        }
+        body.dark .input-box input:focus {
+            border-color: #FF4500;
+            background: #333;
+        }
+        body.dark .btn {
+            background: #FF4500;
+        }
+        body.dark .btn:hover { background: #e03e00; }
+        body.dark .flashes .success { color: #4ade80; }
+        body.dark .flashes .error { color: #f87171; }
+
+        a { color: #4a90e2; text-decoration: none; }
+        body.dark a { color: #FF4500; }
+        body.dark a:hover { text-decoration: underline; }

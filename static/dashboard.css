@@ -1,0 +1,87 @@
+
+        :root {
+            --bg-page: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-main: #212529;
+            --text-secondary: #495057;
+            --accent: #0d6efd;
+            --btn-bg: #0d6efd;
+            --grid-color: rgba(0,0,0,0.08);
+            --bar-fill: rgba(13, 110, 253, 0.2);
+            --bar-border: #0d6efd;
+        }
+        .theme-dark {
+            --bg-page: #15171a;
+            --bg-card: #2b2e33;
+            --text-main: #ffffff;
+            --text-secondary: #8b95a5;
+            --accent: #ff5500;
+            --btn-bg: #ff5500;
+            --grid-color: rgba(255,255,255,0.08);
+            --bar-fill: rgba(30, 65, 95, 0.85);
+            --bar-border: #4a9eff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not(.theme-light) {
+                --bg-page: #15171a; --bg-card: #2b2e33; --text-main: #fff; --text-secondary: #8b95a5;
+                --accent: #ff5500; --btn-bg: #ff5500; --grid-color: rgba(255,255,255,0.08);
+                --bar-fill: rgba(30, 65, 95, 0.85); --bar-border: #4a9eff;
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            background: var(--bg-card);
+            border-radius: 14px;
+            padding: 32px;
+            width: 100%;
+            max-width: 850px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            text-align: center;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 380px;
+            width: 100%;
+            margin-bottom: 24px;
+            transform: rotate(-0.4deg) scale(1.005);
+            filter: contrast(1.02) brightness(1.01);
+        }
+
+        .back-button {
+            display: block;
+            width: 100%;
+            max-width: 220px;
+            margin: 0 auto;
+            background: var(--btn-bg);
+            color: #ffffff;
+            padding: 12px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: background 0.2s ease;
+        }
+        .back-button:hover { background: var(--accent); }
