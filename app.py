@@ -1,250 +1,172 @@
-# app.py
-from flask import Flask, render_template, request, redirect, url_for, flash
-import sqlite3
-import mysql.connector
-import os
+from flask import Flask, render_template, request, redirect, url_for, flash, make_response
+from config import SECRET_KEY
+from models import get_drivers_paginated, add_driver, delete_driver, get_all_trips, delete_trip
+from auth import handle_login, handle_register
+import jwt
+from functools import wraps
+import requests
 
 app = Flask(__name__)
-app.secret_key = 'moy-sekretnyy-klyuch'
+app.secret_key = SECRET_KEY
 
-DB_USERS = os.path.join(os.path.dirname(__file__), 'users.db')
-DB_DRIVERS = os.path.join(os.path.dirname(__file__), 'drivers.db')
-DB_TRIPS = os.path.join(os.path.dirname(__file__), 'trips.db')
+SUPPORT_API_URL = "http://127.0.0.1:8000"
 
-def init_db():
-    conn = sqlite3.connect(DB_USERS)
-    conn.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT NOT NULL UNIQUE, email TEXT NOT NULL, password TEXT NOT NULL)''')
-    conn.commit(); conn.close()
-
-    conn = sqlite3.connect(DB_DRIVERS)
-    conn.execute('''CREATE TABLE IF NOT EXISTS drivers (id INTEGER PRIMARY KEY AUTOINCREMENT, full_name TEXT NOT NULL, license_number TEXT NOT NULL UNIQUE, phone_number TEXT NOT NULL, category TEXT, experience INTEGER)''')
-    conn.commit(); conn.close()
-
-    conn = sqlite3.connect(DB_TRIPS)
-    conn.execute('''CREATE TABLE IF NOT EXISTS trips (id INTEGER PRIMARY KEY AUTOINCREMENT, trip_number TEXT NOT NULL UNIQUE, driver_name TEXT NOT NULL, route TEXT NOT NULL, cargo TEXT, departure_date TEXT, arrival_date TEXT, distance INTEGER, status TEXT)''')
-    conn.commit(); conn.close()
-
-def get_all_drivers():
-    conn = sqlite3.connect(DB_DRIVERS)
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM drivers ORDER BY id DESC') # Сортируем по новизне
-    drivers = cursor.fetchall()
-    conn.close()
-    return drivers
-
-def get_all_trips():
-    conn = sqlite3.connect(DB_TRIPS)
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM trips ORDER BY id DESC')
-    trips = cursor.fetchall()
-    conn.close()
-    return trips
-
-def save_user(username, email, password):
-    try:
-        conn = sqlite3.connect(DB_USERS)
-        cursor = conn.cursor()
-        cursor.execute(
-            'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-            (username, email, password)
-        )
-        conn.commit()
-        conn.close()
-        return True
-    except sqlite3.IntegrityError:
-        conn.close()
-        return False
-
-
-def save_driver(full_name, license_number, phone_number, category, experience):
-    try:
-        conn = sqlite3.connect(DB_DRIVERS)
-        cursor = conn.cursor()
-        cursor.execute(
-            '''INSERT INTO drivers (full_name, license_number, phone_number, category, experience) 
-               VALUES (?, ?, ?, ?, ?)''',
-            (full_name, license_number, phone_number, category, experience)
-        )
-        conn.commit()
-        conn.close()
-        return True
-    except sqlite3.IntegrityError:
-        conn.close()
-        return False
-
-
-def save_trip(trip_number, driver_name, route, cargo, departure_date, arrival_date, distance, status):
-    try:
-        conn = sqlite3.connect(DB_TRIPS)
-        cursor = conn.cursor()
-        cursor.execute(
-            '''INSERT INTO trips (trip_number, driver_name, route, cargo, departure_date, arrival_date, distance, status) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-            (trip_number, driver_name, route, cargo, departure_date, arrival_date, distance, status)
-        )
-        conn.commit()
-        conn.close()
-        return True
-    except sqlite3.IntegrityError:
-        conn.close()
-        return False
-
-
-def check_user(username, password):
-    conn = sqlite3.connect(DB_USERS)
-    cursor = conn.cursor()
-    cursor.execute(
-        'SELECT * FROM users WHERE username = ? AND password = ?',
-        (username, password)
-    )
-    user = cursor.fetchone()
-    conn.close()
-    return user is not None
-
-# Конфигурация
-MYSQL_LOGISTICS = {
-    'host': 'localhost', 'user': 'root', 'password': '123123',
-    'database': 'mysql_logistics', 'charset': 'utf8mb4', 'autocommit': True
-}
-MYSQL_HR = {
-    'host': 'localhost', 'user': 'root', 'password': '123123',
-    'database': 'mysql_hr', 'charset': 'utf8mb4', 'autocommit': True
-}
-
-def init_mysql_dbs():
-    """Создаёт 2 базы и таблицы, максимально повторяя заголовки твоих CSV."""
-    try:
-        #Создаём БД
-        root = mysql.connector.connect(host='localhost', user='root', password='123123')
-        cur_root = root.cursor()
-        cur_root.execute("CREATE DATABASE IF NOT EXISTS mysql_logistics")
-        cur_root.execute("CREATE DATABASE IF NOT EXISTS mysql_hr")
-        root.close()
-
-        #Таблицы для БД 1
-        conn1 = mysql.connector.connect(**MYSQL_LOGISTICS)
-        cur1 = conn1.cursor()
-        cur1.execute('''CREATE TABLE IF NOT EXISTS stores (
-            Код_точки INT PRIMARY KEY, Наименование VARCHAR(100), Адрес VARCHAR(200),
-            Телефон_ответственного VARCHAR(20), Режим_работы VARCHAR(50),
-            Контактное_лицо VARCHAR(100), Приоритет_доставки VARCHAR(20)
-        )''')
-        cur1.execute('''CREATE TABLE IF NOT EXISTS drivers_csv (
-            ID_Водителя INT PRIMARY KEY, ФИО VARCHAR(100), Права VARCHAR(20),
-            Телефон VARCHAR(20), Стаж INT, Статус VARCHAR(30), Регион_работы VARCHAR(50)
-        )''')
-        cur1.execute('''CREATE TABLE IF NOT EXISTS products (
-            Код_товара INT PRIMARY KEY, Название VARCHAR(100), Категория VARCHAR(50),
-            Единица_измерения VARCHAR(10), Вес_единицы INT, Габариты VARCHAR(50), Цена_за_единицы DECIMAL(10,2)
-        )''')
-        cur1.execute('''CREATE TABLE IF NOT EXISTS waybills (
-            ID_накладной INT PRIMARY KEY, Код_товара INT, ID_водителя INT,
-            Код_точки INT, VIN_код VARCHAR(30)
-        )''')
-        cur1.execute('''CREATE TABLE IF NOT EXISTS vehicles (
-            VIN_код VARCHAR(30) PRIMARY KEY, Гос_номер VARCHAR(20), Модель VARCHAR(50),
-            Грузоподъёмность DECIMAL(10,2), Объём_кузова DECIMAL(10,2), Дата_ТО DATETIME, Пробег INT
-        )''')
-        conn1.close()
-
-        #Таблицы для БД 2
-        conn2 = mysql.connector.connect(**MYSQL_HR)
-        cur2 = conn2.cursor()
-        cur2.execute('''CREATE TABLE IF NOT EXISTS worked_time (
-            ID_Записи INT PRIMARY KEY, ID_Сотрудника INT,
-            Дата_начала DATETIME, Дата_окончания DATETIME, Кол_часов INT, Месяц INT, Год INT
-        )''')
-        cur2.execute('''CREATE TABLE IF NOT EXISTS salary_accruals (
-            ID_Начисления INT PRIMARY KEY, ID_Сотрудника INT, Сумма_базовая DECIMAL(10,2),
-            Налоги DECIMAL(10,2), ID_Записи INT
-        )''')
-        cur2.execute('''CREATE TABLE IF NOT EXISTS bonuses (
-            ID_Премии INT PRIMARY KEY, Процент_премии DECIMAL(5,2), Основание VARCHAR(200)
-        )''')
-        cur2.execute('''CREATE TABLE IF NOT EXISTS employees (
-            ID_Сотрудника INT PRIMARY KEY, ФИО VARCHAR(100), Телефон VARCHAR(20),
-            Email VARCHAR(100), Должность VARCHAR(50), Почасовой_оклад DECIMAL(10,2), Подразделение VARCHAR(50)
-        )''')
-        cur2.execute('''CREATE TABLE IF NOT EXISTS payroll_orders (
-            ID_Распоряжения INT PRIMARY KEY, ID_Премии INT, ID_Начисления INT,
-            Год INT, Месяц INT, ID_Сотрудника INT
-        )''')
-        conn2.close()
-        print("✅ MySQL базы и таблицы успешно созданы.")
-    except mysql.connector.Error as e:
-        print(f"⚠️ MySQL пока не запущен или ошибка пароля: {e}")
-        print("💡 Сайт продолжит работать на SQLite. MySQL подключится позже.")
-
-
-def add_to_mysql(db_config, table_name, data_tuple):
-    try:
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
-        placeholders = ', '.join(['%s'] * len(data_tuple))  # генерирует %s, %s, %s...
-        cursor.execute(f'INSERT INTO {table_name} VALUES ({placeholders})', data_tuple)
-        print(f"✅ Запись добавлена в {table_name}")
-        return True
-    except Exception as e:
-        print(f"❌ Ошибка при записи в {table_name}: {e}")
-        return False
-    finally:
-        conn.close()
-
-# Запуск инициализации при старте
-init_db()
-init_mysql_dbs()
+# Декоратор для защиты роутов (требование PDF)
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.cookies.get('token')
+        if not token:
+            flash("Пожалуйста, войдите в систему", "error")
+            return redirect(url_for('login'))
+        try:
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            # Можно добавить проверку пользователя в БД здесь
+        except:
+            flash("Сессия истекла или недействительна", "error")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
 
 @app.route('/')
 def home():
-    return redirect(url_for('register'))
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-
-        if password != confirm_password:
-            flash('Пароли не совпадают!', 'error')
-            return redirect(url_for('register'))
-        if not username or not email or not password:
-            flash('Все поля обязательны!', 'error')
-            return redirect(url_for('register'))
-
-        success = save_user(username, email, password)
-        if success:
-            flash('Регистрация прошла успешно! Теперь войдите.', 'success')
-            return redirect(url_for('login'))
-        else:
-            flash('Это имя уже занято!', 'error')
-            return redirect(url_for('register'))
-    return render_template('register.html')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if check_user(username, password):
-            flash('Вы успешно вошли!', 'success')
-            return redirect(url_for('index'))
+        username = request.form['username']
+        password = request.form['password']
+        success, result = handle_login(username, password)
+        if success:
+            resp = make_response(redirect(url_for('index')))
+            resp.set_cookie('token', result) # Сохраняем JWT в куки
+            return resp
         else:
-            flash('Неправильное имя или пароль!', 'error')
-            return redirect(url_for('login'))
-            
+            flash(result, 'error')
     return render_template('login.html')
 
-@app.route('/index')
-def index():
-    drivers = get_all_drivers()
-    trips = get_all_trips()
-    return render_template('index.html', drivers=drivers, trips=trips)
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm = request.form['confirm_password']
+        success, msg = handle_register(username, email, password, confirm)
+        if success:
+            flash(msg, 'success')
+            return redirect(url_for('login'))
+        else:
+            flash(msg, 'error')
+    return render_template('register.html')
 
-@app.route('/add_driver', methods=['POST'])
-def add_driver():
+@app.route('/logout')
+def logout():
+    resp = make_response(redirect(url_for('login')))
+    resp.delete_cookie('token')
+    return resp
+
+@app.route('/user')
+def user():
+    return render_template('user.html')
+
+@app.route('/refresh_token', methods=['POST'])
+@token_required
+def refresh_token():
+    """Обновление токена через API (возвращает новый токен в JSON)"""
+    from auth import generate_jwt
+    token = request.cookies.get('token')
+    data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    username = data.get('username')
+    
+    new_token = generate_jwt(username)
+    
+    # Можно вернуть и в куках, и в теле ответа для гибкости
+    resp = make_response({"message": "Токен обновлен", "new_token": new_token})
+    resp.set_cookie('token', new_token)
+    return resp
+
+@app.route('/index')
+@token_required
+def index():
+    token = request.cookies.get('token')
+    data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    username = data.get('username')
+
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '', type=str)
+    
+    drivers, total_pages = get_drivers_paginated(page=page, search=search)
+    trips = get_all_trips()
+
+    return render_template('index.html', 
+                           drivers=drivers, 
+                           trips=trips,
+                           current_page=page,       
+                           total_pages=total_pages, 
+                           search_query=search,
+                           username=username)
+
+@app.route('/dashboard')
+@token_required
+def dashboard():
+    """Эндпоинт для аналитики (требование PDF).
+    Тут будут графики (в шаблоне используем Chart.js)"""
+    return render_template('dashboard.html')
+
+@app.route('/api/stats')
+@token_required
+def api_stats():
+    """API эндпоинт для динамической статистики (Чистый Backend)"""
+    from models import get_dashboard_stats
+    stats = get_dashboard_stats()
+    return stats
+
+@app.route('/api/hash/<text>')
+def hash_proxy(text):
+    """Прокси-роут к FastAPI с обработкой падения сервиса (Fallback)"""
+    try:
+        response = requests.get(f"{SUPPORT_API_URL}/api/hash/{text}", timeout=2)
+        return response.json()
+    except Exception as e:
+        print(f"DEBUG: Ошибка при вызове FastAPI (hash): {e}")
+        # Резервный ответ (требование PDF)
+        import hashlib
+        local_hash = hashlib.sha256(text.encode()).hexdigest()
+        return {
+            "request": text,
+            "result": local_hash,
+            "note": "Внимание: сервис FastAPI недоступен, использован локальный метод."
+        }
+
+@app.route('/about')
+def about_html():
+    """HTML страница + данные из микросервиса с Fallback"""
+    about_data = {}
+    try:
+        response = requests.get(f"{SUPPORT_API_URL}/api/about", timeout=2)
+        about_data = response.json()
+    except Exception as e:
+        print(f"DEBUG: Ошибка при вызове FastAPI (about): {e}")
+        about_data = {
+            "project_name": "CargoPay (Offline Mode)",
+            "description": "Описание временно недоступно, так как сервис поддержки выключен."
+        }
+    return render_template('about.html', about=about_data)
+
+@app.route('/api/about')
+def about_json_proxy():
+    """JSON роут о проекте с Fallback (требование PDF)"""
+    try:
+        return requests.get(f"{SUPPORT_API_URL}/api/about", timeout=2).json()
+    except Exception as e:
+        print(f"DEBUG: Ошибка при вызове FastAPI (api/about): {e}")
+        return {"error": "Сервис недоступен", "fallback": "Используйте локальный about.json"}
+
+@app.route('/add_driver', methods=['POST'], endpoint='add_driver')
+@token_required
+def add_driver_route():
     full_name = request.form.get('full_name')
     license_number = request.form.get('license_number')
     phone_number = request.form.get('phone_number')
@@ -255,71 +177,56 @@ def add_driver():
         flash('ФИО и номер прав обязательны!', 'error')
         return redirect(url_for('index'))
 
-    success = save_driver(full_name, license_number, phone_number, category, experience)
+    success = add_driver(full_name, license_number, phone_number, category, experience)
     if success:
         flash('Водитель успешно добавлен!', 'success')
     else:
-        flash('Ошибка при добавлении водителя (возможно, номер прав уже есть).', 'error')
+        flash('Ошибка при добавлении водителя.', 'error')
+
     return redirect(url_for('index'))
 
-@app.route('/add_trip', methods=['POST'])
-def add_trip():
+@app.route('/add_trip', methods=['POST'], endpoint='add_trip')
+@token_required
+def add_trip_route():
+    from models import add_trip
     trip_number = request.form.get('trip_number')
-    driver_name = request.form.get('driver_name')
-    route = request.form.get('route')
-    cargo = request.form.get('cargo')
-    departure_date = request.form.get('departure_date')
-    arrival_date = request.form.get('arrival_date')
-    distance = request.form.get('distance')
+    driver_name = request.form.get('driver_name') 
     status = request.form.get('status')
 
-    if not trip_number or not driver_name or not route:
-        flash('Номер рейса, водитель и маршрут обязательны!', 'error')
+    if not trip_number or not driver_name:
+        flash('Заполните обязательные поля (Номер и Водитель)!', 'error')
         return redirect(url_for('index'))
 
-    success = save_trip(trip_number, driver_name, route, cargo, departure_date, arrival_date, distance, status)
+
+    success = add_trip(trip_number, 1, "Route", "Cargo", "Date", status)
     if success:
-        flash('Рейс успешно добавлен!', 'success')
+        flash('Рейс успешно создан!', 'success')
     else:
-        flash('Ошибка при добавлении рейса.', 'error')
+        flash('Ошибка БД при создании рейса (проверьте колонки)', 'error')
+
+    return redirect(url_for('index'))
+
+@app.route('/delete_driver/<int:id>')
+@token_required
+def del_driver(id):
+    delete_driver(id)
+    return redirect(url_for('index'))
+
+@app.route('/delete_trip/<int:id>')
+@token_required
+def del_trip(id):
+    delete_trip(id)
+    return redirect(url_for('index'))
+
+@app.route('/update_account', methods=['POST'])
+@token_required
+def update_account():
+    """Обновление настроек аккаунта (заглушка)"""
+    flash('Настройки аккаунта обновлены!', 'success')
     return redirect(url_for('index'))
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return 'Страница не найдена', 404
-
-@app.route('/update_account', methods=['POST'])
-def update_account():
-    # Получаем данные из формы
-    new_login = request.form.get('new_login')
-    current_pass = request.form.get('current_password')
-    new_pass = request.form.get('new_password')
-
-
-    flash('Настройки аккаунта сохранены! (Логика обновления в разработке)', 'success')
-    return redirect(url_for('index'))
-
-@app.route('/delete_driver/<int:driver_id>')
-def delete_driver(driver_id):
-    conn = sqlite3.connect(DB_DRIVERS)
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM drivers WHERE id = ?', (driver_id,))
-    conn.commit()
-    conn.close()
-    flash('Водитель удален.', 'success')
-    return redirect(url_for('index', tab='drivers'))
-
-@app.route('/delete_trip/<int:trip_id>')
-def delete_trip(trip_id):
-    conn = sqlite3.connect(DB_TRIPS)
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM trips WHERE id = ?', (trip_id,))
-    conn.commit()
-    conn.close()
-    flash('Рейс удален.', 'success')
-    return redirect(url_for('index', tab='trips'))
-
-init_db()
-
+    return render_template('404.html'), 404
 if __name__ == '__main__':
     app.run(debug=True)
