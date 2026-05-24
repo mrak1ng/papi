@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang="page_title">Профиль - CargoPay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='user.css') }}">
+</head>
+<body class="profile-page">
+    <div class="profile-card">
+        <div class="profile-header">
+            <h2 data-lang="profile_title">Настройки профиля</h2>
+        </div>
+
+        <div class="info-section">
+            <h4 style="color: var(--primary-color); margin-bottom: 0.8rem;" data-lang="user_info">Информация</h4>
+            <div class="info-row">
+                <span class="info-label" data-lang="username">Логин:</span>
+                <span>Admin</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label" data-lang="email">Email:</span>
+                <span>admin@cargopay.com</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h4 style="color: var(--primary-color); margin-bottom: 0.8rem;" data-lang="jwt_token">JWT Токен</h4>
+            <div class="token-box" id="tokenBox">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</div>
+            <button class="btn-save" onclick="refreshToken()" data-lang="refresh_token">Обновить токен</button>
+        </div>
+        <div class="theme-toggle-inline" id="themeToggleBtn" style="margin: 1.5rem 0; cursor: pointer;">
+            <span></span>
+            <span data-lang="toggle_theme">Переключить тему</span>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="back-btn" data-lang="back_home">← На главную</a>
+    </div>
+
+    <script>
+
+        const translations = {
+            ru: {
+                page_title: 'Профиль - CargoPay',
+                profile_title: 'Настройки профиля',
+                user_info: 'Информация',
+                username: 'Логин:',
+                email: 'Email:',
+                jwt_token: 'JWT Токен',
+                refresh_token: 'Обновить токен',
+                toggle_theme: 'Переключить тему',
+                back_home: '← На главную'
+            },
+            en: {
+                page_title: 'Profile - CargoPay',
+                profile_title: 'Profile Settings',
+                user_info: 'Information',
+                username: 'Username:',
+                email: 'Email:',
+                jwt_token: 'JWT Token',
+                refresh_token: 'Refresh Token',
+                toggle_theme: 'Toggle Theme',
+                back_home: '← Back to Home'
+            }
+        };
+        function applyLanguage(lang) {
+            const t = translations[lang];
+            if (!t) return;
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.documentElement.lang = lang;
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.documentElement.classList.add('light');
+            } else {
+                document.documentElement.classList.remove('light');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const savedLang = localStorage.getItem('language') || 'ru';
+
+            applyTheme(savedTheme);
+            applyLanguage(savedLang);
+        });
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+            const isLight = document.documentElement.classList.contains('light');
+            const newTheme = isLight ? 'dark' : 'light';
+
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') applyTheme(e.newValue || 'dark');
+            if (e.key === 'language') applyLanguage(e.newValue || 'ru');
+        });
+        function refreshToken() {
+            const box = document.getElementById('tokenBox');
+            box.style.opacity = '0.5';
+            setTimeout(() => {
+                box.textContent = 'eyJhbGciOiJIUzI1NiIs...' + Math.random().toString(36).substring(2, 10);
+                box.style.opacity = '1';
+            }, 400);
+        }
+    </script>
+</body>
+</html>

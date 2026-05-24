@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Ошибка сервера | CargoPay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="error-container">
+        <div class="brand">🚚 CargoPay</div>
+
+        <div class="error-icon">⚠️</div>
+        <div class="error-code">500</div>
+
+        <h1 class="error-title">Внутренняя ошибка сервера</h1>
+
+        <p class="error-description">
+            Что-то пошло не так на нашей стороне.<br>
+            Мы уже работаем над исправлением. Попробуйте обновить страницу или вернуться позже.
+        </p>
+
+        <a href="{{ url_for('index') }}" class="btn-home">Вернуться на главную</a>
+    </div>
+</body>
+</html>

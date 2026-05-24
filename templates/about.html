@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-lang-key="title">О проекте - CargoPay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='about.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 data-lang-key="about_title">О системе CargoPay</h1>
+
+        <p class="description" data-lang-key="about_desc">
+            CargoPay — это современная многофункциональная платформа, специально разработанная для комплексного управления логистическими процессами и организации эффективных грузоперевозок. Наша система объединяет передовые технологии и интуитивно понятный интерфейс, предоставляя пользователям мощный инструмент для оптимизации транспортных операций.
+        </p>
+
+        <div class="features-title" data-lang-key="features_title">Ключевые возможности системы:</div>
+
+        <ul class="features-list">
+            <li class="feature-item">
+                <span class="feature-title" data-lang-key="feat_jwt_title">JWT Авторизация.</span>
+                <span data-lang-key="feat_jwt_desc">Современный механизм аутентификации на основе JSON Web Tokens обеспечивает быстрый и безопасный доступ к системе, гарантируя защиту данных при каждом запросе.</span>
+            </li>
+            <li class="feature-item">
+                <span class="feature-title" data-lang-key="feat_security_title">Безопасное хранение паролей.</span>
+                <span data-lang-key="feat_security_desc">Мы применяем передовые алгоритмы хеширования и криптографической защиты, чтобы ваши учетные данные всегда оставались под надежной защитой.</span>
+            </li>
+            <li class="feature-item">
+                <span class="feature-title" data-lang-key="feat_mysql_title">Работа с MySQL без ORM.</span>
+                <span data-lang-key="feat_mysql_desc">Отказ от ORM-абстракций в пользу прямых SQL-запросов обеспечивает максимальную производительность, полный контроль над базой данных и оптимизацию каждого запроса.</span>
+            </li>
+            <li class="feature-item">
+                <span class="feature-title" data-lang-key="feat_analytics_title">Аналитика и дашборды.</span>
+                <span data-lang-key="feat_analytics_desc">Информативные панели управления и расширенные инструменты аналитики позволяют отслеживать ключевые показатели эффективности, анализировать транспортные потоки и принимать обоснованные управленческие решения в режиме реального времени.</span>
+            </li>
+        </ul>
+
+        <p class="description" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--divider);" data-lang-key="footer_desc">
+            CargoPay — это надежное решение для компаний, стремящихся автоматизировать логистические процессы и повысить эффективность грузоперевозок.
+        </p>
+
+        <a href="{{ url_for('index') }}" class="back-button" data-lang-key="back_home">На главную</a>
+    </div>
+
+    <script>
+        const translations = {
+            ru: {
+                title: 'О проекте - CargoPay',
+                about_title: 'О системе CargoPay',
+                about_desc: 'CargoPay — это современная многофункциональная платформа, специально разработанная для комплексного управления логистическими процессами и организации эффективных грузоперевозок. Наша система объединяет передовые технологии и интуитивно понятный интерфейс, предоставляя пользователям мощный инструмент для оптимизации транспортных операций.',
+                features_title: 'Ключевые возможности системы:',
+                feat_jwt_title: 'JWT Авторизация.',
+                feat_jwt_desc: 'Современный механизм аутентификации на основе JSON Web Tokens обеспечивает быстрый и безопасный доступ к системе, гарантируя защиту данных при каждом запросе.',
+                feat_security_title: 'Безопасное хранение паролей.',
+                feat_security_desc: 'Мы применяем передовые алгоритмы хеширования и криптографической защиты, чтобы ваши учетные данные всегда оставались под надежной защитой.',
+                feat_mysql_title: 'Работа с MySQL без ORM.',
+                feat_mysql_desc: 'Отказ от ORM-абстракций в пользу прямых SQL-запросов обеспечивает максимальную производительность, полный контроль над базой данных и оптимизацию каждого запроса.',
+                feat_analytics_title: 'Аналитика и дашборды.',
+                feat_analytics_desc: 'Информативные панели управления и расширенные инструменты аналитики позволяют отслеживать ключевые показатели эффективности, анализировать транспортные потоки и принимать обоснованные управленческие решения в режиме реального времени.',
+                footer_desc: 'CargoPay — это надежное решение для компаний, стремящихся автоматизировать логистические процессы и повысить эффективность грузоперевозок.',
+                back_home: 'На главную'
+            },
+            en: {
+                title: 'About - CargoPay',
+                about_title: 'About CargoPay System',
+                about_desc: 'CargoPay is a modern multifunctional platform specifically designed for comprehensive management of logistics processes and organization of efficient cargo transportation. Our system combines advanced technologies and an intuitive interface, providing users with a powerful tool for optimizing transport operations.',
+                features_title: 'Key System Features:',
+                feat_jwt_title: 'JWT Authorization.',
+                feat_jwt_desc: 'Modern authentication mechanism based on JSON Web Tokens provides fast and secure access to the system, guaranteeing data protection with every request.',
+                feat_security_title: 'Secure Password Storage.',
+                feat_security_desc: 'We use advanced hashing algorithms and cryptographic protection to ensure your credentials are always under reliable protection.',
+                feat_mysql_title: 'MySQL without ORM.',
+                feat_mysql_desc: 'Rejecting ORM abstractions in favor of direct SQL queries ensures maximum performance, full database control, and optimization of every query.',
+                feat_analytics_title: 'Analytics and Dashboards.',
+                feat_analytics_desc: 'Informative control panels and advanced analytics tools allow you to track key performance indicators, analyze transport flows, and make informed management decisions in real-time.',
+                footer_desc: 'CargoPay is a reliable solution for companies seeking to automate logistics processes and improve cargo transportation efficiency.',
+                back_home: 'Back to Home'
+            }
+        };
+
+
+        function applyLanguage(lang) {
+            const t = translations[lang];
+            if (!t) return;
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.documentElement.lang = lang;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('theme-dark');
+                document.body.classList.add('theme-dark');
+            } else if (savedTheme === 'light') {
+                document.documentElement.classList.remove('theme-dark');
+                document.body.classList.remove('theme-dark');
+                document.documentElement.classList.add('theme-light');
+            }
+            const savedLang = localStorage.getItem('language') || 'ru';
+            applyLanguage(savedLang);
+        });
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'languageChange') {
+                applyLanguage(e.data.lang);
+                localStorage.setItem('language', e.data.lang);
+            }
+        });
+    </script>
+</body>
+</html>
