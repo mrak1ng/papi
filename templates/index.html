@@ -9,17 +9,18 @@
 </head>
 <body class="dashboard-body">
 
+    <!-- Боковое меню -->
     <aside class="sidebar">
         <div class="brand" data-i18n="brand">🚚 CargoPay</div>
 
         <nav class="nav-menu">
-            <a href="#drivers" class="nav-link active" onclick="showSection('drivers')">
+            <a href="#drivers" class="nav-link active" onclick="showSection('drivers', this)">
                 <span data-i18n="icon_drivers"></span> <span data-i18n="menu_drivers">Водители</span>
             </a>
-            <a href="#trips" class="nav-link" onclick="showSection('trips')">
+            <a href="#trips" class="nav-link" onclick="showSection('trips', this)">
                 <span data-i18n="icon_trips"></span> <span data-i18n="menu_trips">Рейсы</span>
             </a>
-            <a href="#finance" class="nav-link" onclick="showSection('finance')">
+            <a href="#finance" class="nav-link" onclick="showSection('finance', this)">
                 <span data-i18n="icon_finance"></span> <span data-i18n="menu_finance">Расчет</span>
             </a>
         </nav>
@@ -34,6 +35,7 @@
         </div>
     </aside>
 
+    <!-- Основной контент -->
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -43,7 +45,7 @@
             {% endif %}
         {% endwith %}
 
-
+        <!-- Секция: Водители -->
         <section id="drivers" class="section active">
             <div class="card">
                 <h3 data-i18n="driver_management">Управление водителями</h3>
@@ -83,17 +85,20 @@
 
 
             <div class="pagination-controls" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px; align-items: center;">
-
+                
+                <!-- Кнопка НАЗАД -->
                 {% if current_page > 1 %}
                     <a href="{{ url_for('index', page=current_page - 1, search=search_query) }}" class="btn" style="width: auto; padding: 5px 15px;">← Назад</a>
                 {% else %}
                     <span class="btn" style="width: auto; padding: 5px 15px; background: gray; cursor: not-allowed;">← Назад</span>
                 {% endif %}
 
+                <!-- Информация о странице -->
                 <span style="color: var(--bs-body-color);">
                     Страница {{ current_page }} из {{ total_pages if total_pages > 0 else 1 }}
                 </span>
 
+                <!-- Кнопка ВПЕРЕД -->
                 {% if current_page < total_pages %}
                     <a href="{{ url_for('index', page=current_page + 1, search=search_query) }}" class="btn" style="width: auto; padding: 5px 15px;">Вперед →</a>
                 {% else %}
@@ -104,6 +109,7 @@
             </div>
         </section>
 
+        <!-- Секция: Рейсы -->
         <section id="trips" class="section">
             <div class="card">
                 <h3 data-i18n="trip_management">Управление рейсами</h3>
@@ -150,23 +156,31 @@
             </div>
         </section>
 
+        <!-- Секция: Финансы -->
         <section id="finance" class="section">
             <div class="card">
                 <h3 data-i18n="finance_calc">Финансовый расчет</h3>
                 <form class="form-grid-wide">
-                    <input type="text" class="form-control" data-i18n-ph="ph_trip_number" placeholder="Номер рейса">
-                    <input type="text" class="form-control" data-i18n-ph="ph_driver" placeholder="Водитель">
-                    <input type="number" class="form-control" data-i18n-ph="ph_rate" placeholder="Ставка за км (₽)">
-                    <input type="number" class="form-control" data-i18n-ph="ph_distance" placeholder="Расстояние (км)">
-                    <input type="number" class="form-control" data-i18n-ph="ph_fuel" placeholder="Топливо (₽)">
-                    <input type="number" class="form-control" data-i18n-ph="ph_extra" placeholder="Доп. расходы (₽)">
-                    <input type="number" class="form-control" data-i18n-ph="ph_bonus" placeholder="Премия (₽)">
-                    <input type="text" class="form-control" data-i18n-ph="ph_total" placeholder="Итого к оплате (₽)" readonly>
-                    <button type="button" class="btn-save form-submit-btn" data-i18n="btn_calculate">Рассчитать</button>
+                    <select id="calc_trip_select" class="form-control" onchange="onTripChange()">
+                        <option value="">-- Выберите рейс --</option>
+                        {% for trip in trips %}
+                        <option value="{{ trip.ID_накладной }}">{{ trip.VIN_код }} ({{ trip.driver_name }})</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" id="calc_driver" class="form-control" data-i18n-ph="ph_driver" placeholder="Водитель" readonly>
+                    <input type="number" id="calc_rate" class="form-control" data-i18n-ph="ph_rate" placeholder="Ставка за км (₽)" value="15">
+                    <input type="number" id="calc_distance" class="form-control" data-i18n-ph="ph_distance" placeholder="Расстояние (км)">
+                    <input type="number" id="calc_fuel" class="form-control" data-i18n-ph="ph_fuel" placeholder="Топливо (₽)" value="0">
+                    <input type="number" id="calc_extra" class="form-control" data-i18n-ph="ph_extra" placeholder="Доп. расходы (₽)" value="0">
+                    <input type="number" id="calc_bonus" class="form-control" data-i18n-ph="ph_bonus" placeholder="Премия (₽)" value="0">
+                    <input type="text" id="calc_total" class="form-control" data-i18n-ph="ph_total" placeholder="Итого к оплате (₽)" readonly>
+                    <button type="button" class="btn-save form-submit-btn" onclick="calculateFinance()" data-i18n="btn_calculate">Рассчитать</button>
                 </form>
             </div>
         </section>
     </main>
+
+    <!-- Модальное окно настроек -->
     <div class="settings-modal" id="settingsModal">
         <div class="settings-content">
             <div class="settings-header">
@@ -214,16 +228,64 @@
     </div>
 
     <script>
-        function showSection(id) {
+        const tripsData = {{ trips | tojson }};
+        console.log("Trips data loaded:", tripsData);
+
+        function onTripChange() {
+            const tripId = document.getElementById('calc_trip_select').value;
+            console.log("Trip selected ID:", tripId);
+            const trip = tripsData.find(t => t.ID_накладной == tripId);
+            if (trip) {
+                console.log("Found trip details:", trip);
+                document.getElementById('calc_driver').value = trip.driver_name || '';
+                document.getElementById('calc_distance').value = trip.distance || 0;
+            } else {
+                document.getElementById('calc_driver').value = '';
+                document.getElementById('calc_distance').value = '';
+            }
+        }
+
+        // Финансовый расчет
+        function calculateFinance() {
+            console.log("Starting calculation...");
+            const rate = parseFloat(document.getElementById('calc_rate').value) || 0;
+            const distance = parseFloat(document.getElementById('calc_distance').value) || 0;
+            const fuel = parseFloat(document.getElementById('calc_fuel').value) || 0;
+            const extra = parseFloat(document.getElementById('calc_extra').value) || 0;
+            const bonus = parseFloat(document.getElementById('calc_bonus').value) || 0;
+
+            console.log("Values:", {rate, distance, fuel, extra, bonus});
+
+            // Формула: (Ставка * Расстояние) + Премия - Топливо - Доп. расходы
+            const total = (rate * distance) + bonus - fuel - extra;
+            console.log("Calculation result:", total);
+            
+            document.getElementById('calc_total').value = total.toLocaleString('ru-RU') + ' ₽';
+        }
+
+        // Переключение секций
+        function showSection(id, element) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
+            
+            const section = document.getElementById(id);
+            if (section) section.classList.add('active');
+            
+            if (element) {
+                element.classList.add('active');
+            } else {
+                // Если вызвано программно (без элемента), ищем ссылку вручную
+                const link = document.querySelector(`a[onclick*="showSection('${id}'"]`);
+                if (link) link.classList.add('active');
+            }
         }
+
+        // Модальное окно
         function openSettings() { document.getElementById('settingsModal').classList.add('active'); loadSettings(); }
         function closeSettings() { document.getElementById('settingsModal').classList.remove('active'); }
         document.getElementById('settingsModal').addEventListener('click', function(e) { if (e.target === this) closeSettings(); });
 
+        // === Словарь переводов ===
         const translations = {
             ru: {
                 page_title: 'CargoPay Dashboard',
@@ -362,6 +424,8 @@
                 btn_save_changes: 'Save changes'
             }
         };
+
+        // Применение перевода
         function setLanguage(lang) {
             localStorage.setItem('language', lang);
             document.documentElement.setAttribute('data-lang', lang);
@@ -395,6 +459,8 @@
             const saved = localStorage.getItem('language') || 'ru';
             setLanguage(saved);
         }
+
+        // Тема
         function toggleTheme() {
             const root = document.documentElement;
             root.classList.toggle('light');
