@@ -11,7 +11,7 @@ app.secret_key = SECRET_KEY
 
 SUPPORT_API_URL = "http://127.0.0.1:8000"
 
-# Декоратор для защиты роутов (требование PDF)
+# Декоратор для защиты роутов
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -111,21 +111,17 @@ def index():
 @app.route('/dashboard')
 @token_required
 def dashboard():
-    """Эндпоинт для аналитики (требование PDF).
-    Тут будут графики (в шаблоне используем Chart.js)"""
     return render_template('dashboard.html')
 
 @app.route('/api/stats')
 @token_required
 def api_stats():
-    """API эндпоинт для динамической статистики (Чистый Backend)"""
     from models import get_dashboard_stats
     stats = get_dashboard_stats()
     return stats
 
 @app.route('/api/hash/<text>')
 def hash_proxy(text):
-    """Прокси-роут к FastAPI с обработкой падения сервиса (Fallback)"""
     try:
         response = requests.get(f"{SUPPORT_API_URL}/api/hash/{text}", timeout=2)
         return response.json()
@@ -142,13 +138,13 @@ def hash_proxy(text):
 
 @app.route('/about')
 def about_html():
-    """HTML страница + данные из микросервиса с Fallback"""
     about_data = {}
     try:
         response = requests.get(f"{SUPPORT_API_URL}/api/about", timeout=2)
         about_data = response.json()
     except Exception as e:
         print(f"DEBUG: Ошибка при вызове FastAPI (about): {e}")
+        # Резервные данные, если сервис не отвечает
         about_data = {
             "project_name": "CargoPay (Offline Mode)",
             "description": "Описание временно недоступно, так как сервис поддержки выключен."
@@ -157,7 +153,6 @@ def about_html():
 
 @app.route('/api/about')
 def about_json_proxy():
-    """JSON роут о проекте с Fallback (требование PDF)"""
     try:
         return requests.get(f"{SUPPORT_API_URL}/api/about", timeout=2).json()
     except Exception as e:
@@ -190,15 +185,17 @@ def add_driver_route():
 def add_trip_route():
     from models import add_trip
     trip_number = request.form.get('trip_number')
+    # В форме поле называется 'driver_name', а не 'driver_id'
     driver_name = request.form.get('driver_name') 
     status = request.form.get('status')
+    distance = request.form.get('distance', 0)
 
     if not trip_number or not driver_name:
         flash('Заполните обязательные поля (Номер и Водитель)!', 'error')
         return redirect(url_for('index'))
 
-
-    success = add_trip(trip_number, 1, "Route", "Cargo", "Date", status)
+    # Пока что используем 1 как ID водителя для теста, так как у нас в форме текст, а в БД нужен ID
+    success = add_trip(trip_number, 1, "Route", "Cargo", "Date", status, distance)
     if success:
         flash('Рейс успешно создан!', 'success')
     else:
@@ -221,12 +218,15 @@ def del_trip(id):
 @app.route('/update_account', methods=['POST'])
 @token_required
 def update_account():
-    """Обновление настроек аккаунта (заглушка)"""
     flash('Настройки аккаунта обновлены!', 'success')
     return redirect(url_for('index'))
 
 @app.errorhandler(404)
 def page_not_found(e):
+    # Возвращаем render_template с кодом ошибки 404
     return render_template('404.html'), 404
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

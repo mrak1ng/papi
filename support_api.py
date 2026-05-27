@@ -5,6 +5,8 @@ import json
 import os
 
 app = FastAPI()
+
+# Разрешаем Flask обращаться
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

@@ -11,6 +11,8 @@ def get_db_connection(config):
     finally:
         conn.close()
 
+#пользователи = mysql_hr
+
 def get_user_info(username):
     with get_db_connection(MYSQL_HR_SLAVE_CONFIG) as conn:
         cur = conn.cursor(dictionary=True)
@@ -39,6 +41,8 @@ def create_user(username, email, password):
         except Exception as e:
             print(f"Ошибка регистрации: {e}")
             return False
+
+# --- ВОДИТЕЛИ (База mysql_logistics) ---
 
 def get_drivers_paginated(page=1, per_page=5, search=""):
     with get_db_connection(MYSQL_LOGISTICS_SLAVE_CONFIG) as conn:
@@ -94,7 +98,7 @@ def get_all_trips():
         try:
             cur.execute('''SELECT w.ID_накладной, w.VIN_код, d.ФИО as driver_name, 
                                   s.Наименование as store_name, p.Название as product_name,
-                                  'В пути' as Статус
+                                  w.distance, 'В пути' as Статус
                            FROM waybills w
                            LEFT JOIN drivers_csv d ON w.ID_водителя = d.ID_Водителя
                            LEFT JOIN stores s ON w.Код_точки = s.Код_точки
@@ -105,12 +109,12 @@ def get_all_trips():
             print(f"Ошибка получения рейсов: {e}")
             return []
 
-def add_trip(trip_number, driver_id, route, cargo, date, status):
+def add_trip(trip_number, driver_id, route, cargo, date, status, distance=0):
     try:
         with get_db_connection(MYSQL_LOGISTICS_CONFIG) as conn:
             cur = conn.cursor()
-            cur.execute("INSERT INTO waybills (VIN_код, ID_водителя) VALUES (%s, %s)",
-                        (trip_number, driver_id))
+            cur.execute("INSERT INTO waybills (VIN_код, ID_водителя, distance) VALUES (%s, %s, %s)",
+                        (trip_number, driver_id, distance))
             conn.commit()
             return True
     except Exception as e:
@@ -123,11 +127,16 @@ def delete_trip(trip_id):
         cur.execute("DELETE FROM waybills WHERE ID_накладной=%s", (trip_id,))
         conn.commit()
 
+# --- АНАЛИТИКА ---
+
 def get_dashboard_stats():
     with get_db_connection(MYSQL_LOGISTICS_SLAVE_CONFIG) as conn:
         cur = conn.cursor(dictionary=True)
+        # Считаем общее кол-во водителей
         cur.execute("SELECT COUNT(*) as total FROM drivers_csv")
         drivers_count = cur.fetchone()['total']
+        
+        # Считаем общее кол-во рейсов
         cur.execute("SELECT COUNT(*) as total FROM waybills")
         trips_count = cur.fetchone()['total']
         
